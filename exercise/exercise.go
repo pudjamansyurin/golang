@@ -20,18 +20,14 @@ func rot13(b byte) byte {
 }
 
 func (t *rot13Reader) Read(b []byte) (n int, err error) {
-	for {
-		n, err := t.r.Read(b)
+	n, err = t.r.Read(b)
 
-		if err != io.EOF {
-			for i := range b {
-				b[i] = rot13(b[i])
-			}
-			return n, err
-		} else {
-			return 0, io.EOF
+	if err == nil {
+		for i := range b {
+			b[i] = rot13(b[i])
 		}
 	}
+	return n, err
 }
 
 func main() {
