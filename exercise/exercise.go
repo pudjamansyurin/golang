@@ -1,47 +1,51 @@
 package main
 
 import (
-	"image"
-	"image/color"
+	"fmt"
 
-	"golang.org/x/tour/pic"
+	"golang.org/x/tour/tree"
 )
 
-type Image struct {
-	dx, dy int
+// Walk walks the tree t sending all values
+// from the tree to the channel ch.
+func Walk(t *tree.Tree, ch chan int) {
+	WalkRecursive(t, ch)
+	close(ch)
 }
 
-// ColorModel returns the Image's color model.
-func (i Image) ColorModel() color.Model {
-	return color.RGBAModel
+func WalkRecursive(t *tree.Tree, ch chan int) {
+	if t != nil {
+		WalkRecursive(t.Left, ch)
+		ch <- t.Value
+		WalkRecursive(t.Right, ch)
+	}
 }
 
-// Bounds returns the domain for which At can return non-zero color.
-// The bounds do not necessarily contain the point (0, 0).
-func (i Image) Bounds() image.Rectangle {
-	return image.Rect(0, 0, i.dx, i.dy)
-}
+// Same determines whether the trees
+// t1 and t2 contain the same values.
+func Same(t1, t2 *tree.Tree) bool {
+	ch1, ch2 := make(chan int), make(chan int)
+	go Walk(t1, ch1)
+	go Walk(t2, ch2)
+	for {
+		n1, ok1 := <-ch1
+		n2, ok2 := <-ch2
+		if ok1 != ok2 || n1 != n2 {
+			return false
+		}
+		if !ok1 {
+			break
+		}
+	}
+	return true
 
-// At returns the color of the pixel at (x, y).
-// At(Bounds().Min.X, Bounds().Min.Y) returns the upper-left pixel of the grid.
-// At(Bounds().Max.X-1, Bounds().Max.Y-1) returns the lower-right one.
-func (i Image) At(x, y int) color.Color {
-	v := uint8((x + y) / 2)
-	return color.RGBA{v, v, 255, 255}
 }
-
-// func Pic(dx, dy int) [][]uint8 {
-// 	o := make([][]uint8, dy)
-// 	for y := 0; y < dy; y++ {
-// 		o[y] = make([]uint8, dx)
-// 		for x := 0; x < dx; x++ {
-// 			o[y][x] = uint8((x + y) / 2)
-// 		}
-// 	}
-// 	return o
-// }
 
 func main() {
-	m := Image{300, 150}
-	pic.ShowImage(m)
+	ch := make(chan int)
+	go Walk(tree.New(1), ch)
+
+	fmt.Println(Same(tree.New(1), tree.New(2)))
+	fmt.Println(Same(tree.New(1), tree.New(1)))
+	fmt.Println(Same(tree.New(2), tree.New(1)))
 }
