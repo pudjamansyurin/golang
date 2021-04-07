@@ -1,37 +1,18 @@
 package main
 
-import (
-	"io"
-	"os"
-	"strings"
-)
+import "golang.org/x/tour/pic"
 
-type rot13Reader struct {
-	r io.Reader
-}
-
-func rot13(b byte) byte {
-	if (b >= 'A' && b <= 'M') || (b >= 'a' && b <= 'm') {
-		return b + 13
-	} else if (b >= 'N' && b <= 'Z') || (b >= 'n' && b <= 'z') {
-		return b - 13
-	}
-	return b
-}
-
-func (t *rot13Reader) Read(b []byte) (n int, err error) {
-	n, err = t.r.Read(b)
-
-	if err == nil {
-		for i := range b {
-			b[i] = rot13(b[i])
+func Pic(dx, dy int) [][]uint8 {
+	o := make([][]uint8, dy)
+	for y := 0; y < dy; y++ {
+		o[y] = make([]uint8, dx)
+		for x := 0; x < dx; x++ {
+			o[y][x] = uint8((x + y) / 2)
 		}
 	}
-	return n, err
+	return o
 }
 
 func main() {
-	s := strings.NewReader("Lbh penpxrq gur pbqr!")
-	r := rot13Reader{s}
-	io.Copy(os.Stdout, &r)
+	pic.Show(Pic)
 }
