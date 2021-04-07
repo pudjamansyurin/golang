@@ -44,6 +44,15 @@ func Same(t1, t2 *tree.Tree) bool {
 func main() {
 	ch := make(chan int)
 	go Walk(tree.New(1), ch)
+	for {
+		n, ok := <-ch
+		if ok {
+			fmt.Printf("%v ", n)
+		} else {
+			fmt.Println()
+			break
+		}
+	}
 
 	fmt.Println(Same(tree.New(1), tree.New(2)))
 	fmt.Println(Same(tree.New(1), tree.New(1)))
