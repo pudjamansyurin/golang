@@ -1,0 +1,16 @@
+<html>
+    <head>
+        <title>{{.Title}}</title>
+        <style>
+            .content {
+                color: chartreuse;
+                background-color: black;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>{{.Title}}</h1>
+        <p>[<a href="/edit/{{.Title}}">Edit</a>]</p>
+        <div class="content">{{printf "%s" .Body}}</div>
+    </body>
+</html>
