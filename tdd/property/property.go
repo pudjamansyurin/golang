@@ -3,7 +3,7 @@ package property
 import "strings"
 
 type RomanNumeral struct {
-	Value  int
+	Value  uint16
 	Symbol string
 }
 
@@ -25,7 +25,7 @@ var allRomanNumerals = RomanNumerals{
 	{1, "I"},
 }
 
-func ConvertToRoman(arabic int) string {
+func ConvertToRoman(arabic uint16) string {
 	var res strings.Builder
 
 	for _, v := range allRomanNumerals {
@@ -38,7 +38,7 @@ func ConvertToRoman(arabic int) string {
 	return res.String()
 }
 
-func (r RomanNumerals) ValueOf(symbols ...byte) int {
+func (r RomanNumerals) ValueOf(symbols ...byte) uint16 {
 	symbol := string(symbols)
 	for _, v := range r {
 		if v.Symbol == symbol {
@@ -48,8 +48,8 @@ func (r RomanNumerals) ValueOf(symbols ...byte) int {
 	return 0
 }
 
-func ConvertToArabic(roman string) int {
-	total := 0
+func ConvertToArabic(roman string) uint16 {
+	total := uint16(0)
 
 	for i := 0; i < len(roman); i++ {
 		symbol := roman[i]
