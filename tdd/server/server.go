@@ -6,11 +6,15 @@ import (
 	"net/http"
 )
 
-const jsonContentType = "application/json"
-
 type Player struct {
 	Name string
 	Wins int
+}
+
+type PlayerStore interface {
+	GetPlayerScore(name string) int
+	RecordWin(name string)
+	GetLeague() League
 }
 
 type PlayerServer struct {
@@ -18,11 +22,7 @@ type PlayerServer struct {
 	http.Handler
 }
 
-type PlayerStore interface {
-	GetPlayerScore(name string) int
-	RecordWin(name string)
-	GetLeague() []Player
-}
+const jsonContentType = "application/json"
 
 func NewPlayerServer(store PlayerStore) *PlayerServer {
 	p := new(PlayerServer)
@@ -39,7 +39,6 @@ func NewPlayerServer(store PlayerStore) *PlayerServer {
 func (p *PlayerServer) leagueHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", jsonContentType)
 	json.NewEncoder(w).Encode(p.store.GetLeague())
-	w.WriteHeader(http.StatusOK)
 }
 
 func (p *PlayerServer) playersHandler(w http.ResponseWriter, r *http.Request) {

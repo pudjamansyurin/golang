@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -84,14 +83,14 @@ func TestLeague(t *testing.T) {
 		server.ServeHTTP(res, req)
 
 		assertCode(t, res.Code, http.StatusOK)
-		getLeagueFromBody(t, res.Body)
+		getLeagueFromResponse(t, res.Body)
 	})
 
 	t.Run(`it returns the league table as JSON`, func(t *testing.T) {
 		store := &StubPlayerStore{
 			scores:   nil,
 			winCalls: nil,
-			league: []Player{
+			league: League{
 				{"Puja", 30},
 				{"Kusuma", 27},
 				{"Erawan", 55},
@@ -107,7 +106,7 @@ func TestLeague(t *testing.T) {
 		assertCode(t, res.Code, http.StatusOK)
 		assertContentType(t, res, jsonContentType)
 
-		got := getLeagueFromBody(t, res.Body)
+		got := getLeagueFromResponse(t, res.Body)
 		assertLeague(t, got, store.league)
 	})
 }
@@ -134,7 +133,7 @@ func assertBody(t *testing.T, got, want string) {
 	}
 }
 
-func assertLeague(t *testing.T, got, want []Player) {
+func assertLeague(t *testing.T, got, want League) {
 	t.Helper()
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf(`got %v, want %v`, got, want)
@@ -156,21 +155,17 @@ func newLeagueRequest() *http.Request {
 	return req
 }
 
-func getLeagueFromBody(t *testing.T, body io.Reader) (league []Player) {
+func getLeagueFromResponse(t *testing.T, body io.Reader) League {
 	t.Helper()
 
-	err := json.NewDecoder(body).Decode(&league)
-
-	if err != nil {
-		t.Fatalf(`Unable to parse players %q, %v`, body, err)
-	}
-	return
+	league, _ := NewLeague(body)
+	return league
 }
 
 type StubPlayerStore struct {
 	scores   map[string]int
 	winCalls []string
-	league   []Player
+	league   League
 }
 
 func (s *StubPlayerStore) GetPlayerScore(name string) int {
@@ -181,6 +176,6 @@ func (s *StubPlayerStore) RecordWin(name string) {
 	s.winCalls = append(s.winCalls, name)
 }
 
-func (s *StubPlayerStore) GetLeague() []Player {
+func (s *StubPlayerStore) GetLeague() League {
 	return s.league
 }
