@@ -1,9 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"log"
-	"net/http"
-
+	"os"
 	poker "tdd/server"
 )
 
@@ -16,9 +16,7 @@ func main() {
 	}
 	defer close()
 
-	server := poker.NewPlayerServer(store)
-
-	if err := http.ListenAndServe(":5000", server); err != nil {
-		log.Fatalf(`could not listen on :5000, %v`, err)
-	}
+	fmt.Println(`Lets play poker`)
+	fmt.Println(`To record, please type "{Name} wins"`)
+	poker.NewCLI(store, os.Stdin).PlayPoker()
 }
