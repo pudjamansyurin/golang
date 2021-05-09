@@ -1,6 +1,33 @@
 package poker
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+	"time"
+)
+
+func AssertPlayerWin(t *testing.T, store *StubPlayerStore, winner string) {
+	t.Helper()
+
+	if len(store.winCalls) != 1 {
+		t.Errorf(`got %d call, want %d`, len(store.winCalls), 1)
+	}
+
+	if store.winCalls[0] != winner {
+		t.Errorf(`got %q winner, want %q`, store.winCalls[0], winner)
+	}
+}
+
+func AssertScheduleAlert(t *testing.T, got, want ScheduleAlert) {
+	t.Helper()
+	if got.Amount != want.Amount {
+		t.Errorf(`got amount %d, want %d`, got.Amount, want.Amount)
+	}
+
+	if got.At != want.At {
+		t.Errorf(`got scheduled %v, want %v`, got.At, want.At)
+	}
+}
 
 type StubPlayerStore struct {
 	scores   map[string]int
@@ -20,14 +47,34 @@ func (s *StubPlayerStore) GetLeague() League {
 	return s.league
 }
 
-func AssertPlayerWin(t *testing.T, store *StubPlayerStore, winner string) {
-	t.Helper()
+type ScheduleAlert struct {
+	At     time.Duration
+	Amount int
+}
 
-	if len(store.winCalls) != 1 {
-		t.Errorf(`got %d call, want %d`, len(store.winCalls), 1)
-	}
+func (s ScheduleAlert) String() string {
+	return fmt.Sprintf(`%d chips at %v`, s.Amount, s.At)
+}
 
-	if store.winCalls[0] != winner {
-		t.Errorf(`got %q winner, want %q`, store.winCalls[0], winner)
-	}
+type SpyBlindAlerter struct {
+	Alerts []ScheduleAlert
+}
+
+func (s *SpyBlindAlerter) ScheduleAlertAt(duration time.Duration, amount int) {
+	s.Alerts = append(s.Alerts, ScheduleAlert{duration, amount})
+}
+
+type SpyGame struct {
+	Run          bool
+	StartedWith  int
+	FinishedWith string
+}
+
+func (s *SpyGame) Start(numOfPlayers int) {
+	s.StartedWith = numOfPlayers
+	s.Run = true
+}
+
+func (s *SpyGame) Finish(winner string) {
+	s.FinishedWith = winner
 }
