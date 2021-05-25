@@ -3,13 +3,12 @@ package poker
 import (
 	"fmt"
 	"io"
-	"testing"
 	"time"
 )
 
 type StubPlayerStore struct {
 	Scores   map[string]int
-	winCalls []string
+	WinCalls []string
 	League   League
 }
 
@@ -18,7 +17,7 @@ func (s *StubPlayerStore) GetPlayerScore(name string) int {
 }
 
 func (s *StubPlayerStore) RecordWin(name string) {
-	s.winCalls = append(s.winCalls, name)
+	s.WinCalls = append(s.WinCalls, name)
 }
 
 func (s *StubPlayerStore) GetLeague() League {
@@ -49,52 +48,15 @@ type SpyGame struct {
 
 	FinishedCalled   bool
 	FinishCalledWith string
-	// https://quii.gitbook.io/learn-go-with-tests/build-an-application/websockets#write-the-test-first-3
 }
 
-func (s *SpyGame) Start(numOfPlayers int, alertDestination io.Writer) {
-	s.StartCalledWith = numOfPlayers
+func (s *SpyGame) Start(numOfPlayers int, out io.Writer) {
 	s.StartCalled = true
+	s.StartCalledWith = numOfPlayers
+	out.Write(s.BlindAlert)
 }
 
 func (s *SpyGame) Finish(winner string) {
-	s.FinishCalledWith = winner
 	s.FinishedCalled = true
-}
-
-func AssertPlayerWin(t *testing.T, store *StubPlayerStore, winner string) {
-	t.Helper()
-
-	if len(store.winCalls) != 1 {
-		t.Errorf(`got %d call of RecordWin, want %d`, len(store.winCalls), 1)
-	}
-
-	if store.winCalls[0] != winner {
-		t.Errorf(`got %q winner, want %q`, store.winCalls[0], winner)
-	}
-}
-
-func AssertScheduleAlert(t *testing.T, got, want ScheduleAlert) {
-	t.Helper()
-	if got.Amount != want.Amount {
-		t.Errorf(`got amount %d, want %d`, got.Amount, want.Amount)
-	}
-
-	if got.At != want.At {
-		t.Errorf(`got scheduled %v, want %v`, got.At, want.At)
-	}
-}
-
-func AssertFinishCalledWith(t *testing.T, game *SpyGame, winner string) {
-	t.Helper()
-	if game.FinishCalledWith != winner {
-		t.Errorf(`it finished with %q winner, want %q`, game.FinishCalledWith, winner)
-	}
-}
-
-func AssertGameStartedWith(t *testing.T, game *SpyGame, numOfPlayers int) {
-	t.Helper()
-	if game.StartCalledWith != numOfPlayers {
-		t.Errorf(`it started with %d players, want %d`, game.StartCalledWith, numOfPlayers)
-	}
+	s.FinishCalledWith = winner
 }

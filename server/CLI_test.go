@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"strings"
 	"testing"
-	"time"
 
 	poker "example.com/server"
 )
@@ -15,29 +14,29 @@ var (
 	dummyGame         = &poker.SpyGame{}
 	dummyBlindAlerter = &poker.SpyBlindAlerter{}
 	dummyPlayerStore  = &poker.StubPlayerStore{}
-	dummyStdIn        = &bytes.Buffer{}
-	dummyStdOut       = &bytes.Buffer{}
+	// dummyStdIn        = &bytes.Buffer{}
+	dummyStdOut = &bytes.Buffer{}
 )
 
 var alert5Cases = []poker.ScheduleAlert{
-	{0 * time.Second, 100},
-	{10 * time.Minute, 200},
-	{20 * time.Minute, 300},
-	{30 * time.Minute, 400},
-	{40 * time.Minute, 500},
-	{50 * time.Minute, 600},
-	{60 * time.Minute, 800},
-	{70 * time.Minute, 1000},
-	{80 * time.Minute, 2000},
-	{90 * time.Minute, 4000},
-	{100 * time.Minute, 8000},
+	{0 * poker.TimeUnit, 100},
+	{10 * poker.TimeUnit, 200},
+	{20 * poker.TimeUnit, 300},
+	{30 * poker.TimeUnit, 400},
+	{40 * poker.TimeUnit, 500},
+	{50 * poker.TimeUnit, 600},
+	{60 * poker.TimeUnit, 800},
+	{70 * poker.TimeUnit, 1000},
+	{80 * poker.TimeUnit, 2000},
+	{90 * poker.TimeUnit, 4000},
+	{100 * poker.TimeUnit, 8000},
 }
 
 var alert7Cases = []poker.ScheduleAlert{
-	{0 * time.Second, 100},
-	{12 * time.Minute, 200},
-	{24 * time.Minute, 300},
-	{36 * time.Minute, 400},
+	{0 * poker.TimeUnit, 100},
+	{12 * poker.TimeUnit, 200},
+	{24 * poker.TimeUnit, 300},
+	{36 * poker.TimeUnit, 400},
 }
 
 func TestCLI(t *testing.T) {
@@ -49,7 +48,7 @@ func TestCLI(t *testing.T) {
 		cli := poker.NewCLI(in, dummyStdOut, game)
 		cli.PlayPoker()
 
-		poker.AssertPlayerWin(t, playerStore, "Puja")
+		assertPlayerWin(t, playerStore, "Puja")
 	})
 
 	t.Run("record Erawan wins from input", func(t *testing.T) {
@@ -60,7 +59,7 @@ func TestCLI(t *testing.T) {
 		cli := poker.NewCLI(in, dummyStdOut, game)
 		cli.PlayPoker()
 
-		poker.AssertPlayerWin(t, playerStore, "Erawan")
+		assertPlayerWin(t, playerStore, "Erawan")
 	})
 
 	t.Run(`it schedules printing of blind values`, func(t *testing.T) {
@@ -90,7 +89,7 @@ func TestCLI(t *testing.T) {
 			t.Errorf("got %q, want %q", gotPrompt, wantPrompt)
 		}
 
-		poker.AssertGameStartedWith(t, game, 7)
+		assertGameStartedWith(t, game, 7)
 	})
 
 	t.Run("start game with 3 players and finish game with 'Puja' as winner", func(t *testing.T) {
@@ -103,8 +102,8 @@ func TestCLI(t *testing.T) {
 		cli.PlayPoker()
 
 		assertMessagesSentToUser(t, stdout, poker.PlayerPrompt)
-		poker.AssertGameStartedWith(t, game, 3)
-		poker.AssertFinishCalledWith(t, game, "Puja")
+		assertGameStartedWith(t, game, 3)
+		assertFinishCalledWith(t, game, "Puja")
 	})
 
 	t.Run("start game with 8 players and record 'Kusuma' as winner", func(t *testing.T) {
@@ -115,8 +114,8 @@ func TestCLI(t *testing.T) {
 
 		cli.PlayPoker()
 
-		poker.AssertGameStartedWith(t, game, 8)
-		poker.AssertFinishCalledWith(t, game, "Kusuma")
+		assertGameStartedWith(t, game, 8)
+		assertFinishCalledWith(t, game, "Kusuma")
 	})
 
 	t.Run("it prints an error when a non numeric value is entered and does not start the game", func(t *testing.T) {
@@ -172,7 +171,30 @@ func TestGame_Finish(t *testing.T) {
 	winner := "Puja"
 
 	game.Finish(winner)
-	poker.AssertPlayerWin(t, store, winner)
+	assertPlayerWin(t, store, winner)
+}
+
+func assertPlayerWin(t *testing.T, store *poker.StubPlayerStore, winner string) {
+	t.Helper()
+
+	if len(store.WinCalls) != 1 {
+		t.Errorf(`got %d call of RecordWin, want %d`, len(store.WinCalls), 1)
+	}
+
+	if store.WinCalls[0] != winner {
+		t.Errorf(`got %q winner, want %q`, store.WinCalls[0], winner)
+	}
+}
+
+func assertScheduleAlert(t *testing.T, got, want poker.ScheduleAlert) {
+	t.Helper()
+	if got.Amount != want.Amount {
+		t.Errorf(`got amount %d, want %d`, got.Amount, want.Amount)
+	}
+
+	if got.At != want.At {
+		t.Errorf(`got scheduled %v, want %v`, got.At, want.At)
+	}
 }
 
 func assertGameNotStarted(t *testing.T, game *poker.SpyGame) {
@@ -180,6 +202,16 @@ func assertGameNotStarted(t *testing.T, game *poker.SpyGame) {
 
 	if game.StartCalled {
 		t.Errorf("game should not run")
+	}
+}
+
+func assertMessagesSentToUser(t *testing.T, stdout *bytes.Buffer, messages ...string) {
+	t.Helper()
+	want := strings.Join(messages, "")
+	got := stdout.String()
+
+	if got != want {
+		t.Errorf("got %q sent to stdout but expected %+v", got, messages)
 	}
 }
 
@@ -192,7 +224,7 @@ func checkSchedulingCases(cases []poker.ScheduleAlert, t *testing.T, alerter *po
 			}
 
 			got := alerter.Alerts[i]
-			poker.AssertScheduleAlert(t, got, want)
+			assertScheduleAlert(t, got, want)
 		})
 	}
 }
@@ -200,14 +232,4 @@ func checkSchedulingCases(cases []poker.ScheduleAlert, t *testing.T, alerter *po
 func userSends(in ...string) *strings.Reader {
 	input := strings.Join(in, "\n")
 	return strings.NewReader(input)
-}
-
-func assertMessagesSentToUser(t *testing.T, stdout *bytes.Buffer, messages ...string) {
-	t.Helper()
-	want := strings.Join(messages, "")
-	got := stdout.String()
-
-	if got != want {
-		t.Errorf("got %q sent to stdout but expected %+v", got, messages)
-	}
 }

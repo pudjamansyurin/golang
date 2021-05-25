@@ -27,9 +27,10 @@
     <script type="text/babel">
       function App() {
         const [conn, setConn] = React.useState(null);
-        const [blindText, setBlindText] = React.useState("");
+        const [status, setStatus] = React.useState("");
+        const [blinds, setBlinds] = React.useState([]);
         const [state, setState] = React.useState({
-          numberOfPlayers: 2,
+          numberOfPlayers: 0,
           winnerInput: "",
         });
 
@@ -45,19 +46,21 @@
           setConn(conn);
 
           conn.onclose = (evt) => {
-            setBlindText("Connection closed");
+            setStatus("Connection closed");
           };
 
           conn.onopen = (evt) => {
-            setBlindText("Connection opened");
+            setStatus("Connection opened");
           };
 
           conn.onmessage = (evt) => {
-            setBlindText(evt.data);
+            setBlinds((prev) => [...prev, evt.data]);
           };
 
           return () => {
             conn.close();
+            setConn(null);
+            setBlinds([]);
           };
         }, []);
 
@@ -124,7 +127,12 @@
                   </div>
                 )}
 
-                <div id="blind-value">{blindText}</div>
+                <div id="status">{status}</div>
+                <ol id="blind-value">
+                  {blinds.map((blind, i) => (
+                    <li key={i}>{blind}</li>
+                  ))}
+                </ol>
               </section>
             )}
 
