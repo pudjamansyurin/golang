@@ -9,17 +9,21 @@ import (
 )
 
 func main() {
-	r := gin.Default()
-
 	models.ConnectDB()
+	r := gin.Default()
 
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"data": "hello world"})
 	})
-	r.GET("/books", controllers.FindBooks)
-	r.GET("/books/:id", controllers.FindBook)
-	r.POST("/books", controllers.CreateBook)
-	r.PUT("/books/:id", controllers.UpdateBook)
+
+	v1 := r.Group("/book")
+	{
+		v1.GET("", controllers.FindBooks)
+		v1.GET("/:id", controllers.FindBook)
+		v1.POST("", controllers.CreateBook)
+		v1.PUT("/:id", controllers.UpdateBook)
+		v1.DELETE("/:id", controllers.DeleteBook)
+	}
 
 	r.Run()
 }
