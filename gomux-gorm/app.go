@@ -1,19 +1,18 @@
 package main
 
 import (
-	"database/sql"
-
 	"github.com/gorilla/mux"
-	_ "github.com/lib/pq"
+	"github.com/jinzhu/gorm"
 )
 
 type App struct {
 	Router *mux.Router
-	DB     *sql.DB
+	DB     *gorm.DB
 }
 
 func (a *App) Initialize(user, pass, dbname string) {
-
+	a.DB := models.ConnectDatabase(dbname) 
+	a.Router := mux.NewRouter()
 }
 
 func (a *App) Run(addr string) {
