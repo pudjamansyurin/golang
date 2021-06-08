@@ -1,29 +1,27 @@
 package models
 
-import (
-	"database/sql"
-	"errors"
-)
-
 type Product struct {
 	ID    int     `json:"id" gorm:"primary_key"`
 	Name  string  `json:"name"`
 	Price float64 `json:"price"`
 }
 
-func (p *Product) create(db *sql.DB) error {
-	return errors.New("implement me")
+func (p *Product) List(page, pageSize int) ([]Product, error) {
+	var products []Product
+	if err := DB.Scopes(Paginate(page, pageSize)).Find(&products).Error; err != nil {
+		return []Product{}, err
+	}
+	return products, nil
 }
-func (p *Product) read(db *sql.DB) error {
-	return errors.New("implement me")
+func (p *Product) Create() error {
+	return DB.Create(p).Error
 }
-func (p *Product) update(db *sql.DB) error {
-	return errors.New("implement me")
+func (p *Product) Read() error {
+	return DB.Where("id = ?", p.ID).First(p).Error
 }
-func (p *Product) delete(db *sql.DB) error {
-	return errors.New("implement me")
+func (p *Product) Update() error {
+	return DB.Model(p).Updates(p).Error
 }
-
-func getProducts(db *sql.DB, start, count int) ([]Product, error) {
-	return nil, errors.New("implement me")
+func (p *Product) Delete() error {
+	return DB.Delete(p).Error
 }
