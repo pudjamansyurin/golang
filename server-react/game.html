@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Let's play poker</title>
+
+    <!-- Load React. -->
+    <!-- Note: when deploying, replace "development.js" with "production.min.js". -->
+    <script
+      src="https://unpkg.com/react@16/umd/react.development.js"
+      crossorigin
+    ></script>
+    <script
+      src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"
+      crossorigin
+    ></script>
+    <script
+      src="https://unpkg.com/babel-standalone@6/babel.min.js"
+      crossorigin
+    ></script>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      function App() {
+        const [conn, setConn] = React.useState(null);
+        const [status, setStatus] = React.useState("");
+        const [blinds, setBlinds] = React.useState([]);
+        const [state, setState] = React.useState({
+          numberOfPlayers: 0,
+          winnerInput: "",
+        });
+
+        const [hide, setHide] = React.useState({
+          startGame: false,
+          declareWinner: true,
+          gameContainer: false,
+          gameEndContainer: true,
+        });
+
+        React.useEffect(() => {
+          const conn = new WebSocket(`ws://${document.location.host}/ws`);
+          setConn(conn);
+
+          conn.onclose = (evt) => {
+            setStatus("Connection closed");
+          };
+
+          conn.onopen = (evt) => {
+            setStatus("Connection opened");
+          };
+
+          conn.onmessage = (evt) => {
+            setBlinds((prev) => [...prev, evt.data]);
+          };
+
+          return () => {
+            conn.close();
+            setConn(null);
+            setBlinds([]);
+          };
+        }, []);
+
+        const handleInputChange = (e) => {
+          e.persist();
+          setState((prevState) => ({
+            ...prevState,
+            [e.target.name]: e.target.value,
+          }));
+        };
+
+        const hideElem = (elem, hide) => {
+          setHide((prevState) => ({
+            ...prevState,
+            [elem]: hide,
+          }));
+        };
+
+        const submitWinner = () => {
+          conn.send(state.winnerInput);
+          hideElem("gameEndContainer", false);
+          hideElem("gameContainer", true);
+        };
+
+        const startGame = () => {
+          conn.send(state.numberOfPlayers);
+          hideElem("startGame", true);
+          hideElem("declareWinner", false);
+        };
+
+        return (
+          <React.Fragment>
+            {!hide.gameContainer && (
+              <section id="game">
+                {!hide.startGame && (
+                  <div id="game-start">
+                    <label htmlFor="player-count">Number of players</label>
+                    <input
+                      type="number"
+                      id="player-count"
+                      name="numberOfPlayers"
+                      value={state.numberOfPlayers}
+                      onChange={handleInputChange}
+                    />
+                    <button id="start-game" onClick={startGame}>
+                      Start
+                    </button>
+                  </div>
+                )}
+
+                {!hide.declareWinner && (
+                  <div id="declare-winner">
+                    <label htmlFor="winner">Winner</label>
+                    <input
+                      type="text"
+                      id="winner"
+                      name="winnerInput"
+                      value={state.winnerInput}
+                      onChange={handleInputChange}
+                    />
+                    <button id="winner-button" onClick={submitWinner}>
+                      Declare winner
+                    </button>
+                  </div>
+                )}
+
+                <div id="status">{status}</div>
+                <ol id="blind-value">
+                  {blinds.map((blind, i) => (
+                    <li key={i}>{blind}</li>
+                  ))}
+                </ol>
+              </section>
+            )}
+
+            {!hide.gameEndContainer && (
+              <section id="game-end">
+                <h1>Another great game of poker everyone!</h1>
+                <p>
+                  <a href="/league">Go check the league table</a>
+                </p>
+              </section>
+            )}
+          </React.Fragment>
+        );
+      }
+
+      ReactDOM.render(<App />, document.getElementById("root"));
+    </script>
+  </body>
+</html>
