@@ -9,88 +9,91 @@ import (
 	"github.com/pudjamansyurin/gomux-gorm/models"
 )
 
+const (
+	ERR_INVALID_PAYLOAD = "Invalid request payload"
+	ERR_INVALID_ID      = "Invalid item ID"
+)
+
 func GetProducts(w http.ResponseWriter, r *http.Request) {
 	page, _ := strconv.Atoi(r.FormValue("page"))
 	pageSize, _ := strconv.Atoi(r.FormValue("page_size"))
 
-	p := &models.Product{}
-	products, err := p.List(page, pageSize)
+	model := &models.Product{}
+	products, err := model.All(page, pageSize)
 	if err != nil {
 		respError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-
+	count := strconv.Itoa(model.Count())
+	w.Header().Set("X-Total-Count", count)
 	respJSON(w, http.StatusOK, products)
 }
 
 func CreateProduct(w http.ResponseWriter, r *http.Request) {
-	p := &models.Product{}
-	if err := json.NewDecoder(r.Body).Decode(p); err != nil {
-		respError(w, http.StatusBadRequest, "Invalid request payload")
+	model := &models.Product{}
+	if err := json.NewDecoder(r.Body).Decode(model); err != nil {
+		respError(w, http.StatusBadRequest, ERR_INVALID_PAYLOAD)
 		return
 	}
 	defer r.Body.Close()
 
-	if err := p.Create(); err != nil {
+	if err := model.Create(); err != nil {
 		respError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	respJSON(w, http.StatusCreated, p)
+	respJSON(w, http.StatusCreated, model)
 }
 
 func GetProduct(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		respError(w, http.StatusBadRequest, "Invalid ID")
+		respError(w, http.StatusBadRequest, ERR_INVALID_ID)
 		return
 	}
 
-	p := &models.Product{ID: id}
-	if err := p.Read(); err != nil {
+	model := &models.Product{}
+	if err := model.Read(id); err != nil {
 		respError(w, http.StatusNotFound, err.Error())
 		return
 	}
-	respJSON(w, http.StatusOK, p)
+	respJSON(w, http.StatusOK, model)
 }
 
 func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		respError(w, http.StatusBadRequest, "Invalid product ID")
+		respError(w, http.StatusBadRequest, ERR_INVALID_ID)
 		return
 	}
 
-	p := &models.Product{}
-	if err := json.NewDecoder(r.Body).Decode(p); err != nil {
-		respError(w, http.StatusBadRequest, "Invalid request payload")
+	model := &models.Product{}
+	if err := json.NewDecoder(r.Body).Decode(model); err != nil {
+		respError(w, http.StatusBadRequest, ERR_INVALID_PAYLOAD)
 		return
 	}
 	defer r.Body.Close()
 
-	p.ID = id
-	if err := p.Update(); err != nil {
+	if err := model.Update(id); err != nil {
 		respError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-
-	respJSON(w, http.StatusOK, p)
+	respJSON(w, http.StatusOK, model)
 }
 
 func DeleteProduct(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		respError(w, http.StatusBadRequest, "Invalid Product ID")
+		respError(w, http.StatusBadRequest, ERR_INVALID_ID)
 		return
 	}
 
-	p := &models.Product{ID: id}
-	if err := p.Delete(); err != nil {
+	model := &models.Product{}
+	if err := model.Delete(id); err != nil {
 		respError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-
 	respJSON(w, http.StatusOK, map[string]string{"result": "success"})
 }

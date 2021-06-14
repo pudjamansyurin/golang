@@ -13,7 +13,7 @@ func respError(w http.ResponseWriter, code int, msg string) {
 func respJSON(w http.ResponseWriter, code int, payload interface{}) {
 	res, err := json.Marshal(payload)
 	if err != nil {
-		log.Println("could not parse json:", err)
+		log.Println("Could not parse JSON:", err)
 	}
 
 	w.Header().Set("Content-Type", "application/json")

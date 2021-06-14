@@ -6,11 +6,11 @@ import (
 )
 
 func Product(router *mux.Router) {
-	p := router.PathPrefix("/product").Subrouter()
+	r := router.PathPrefix("/products").Subrouter()
 
-	p.HandleFunc("/", controllers.GetProducts).Methods("GET")
-	p.HandleFunc("/", controllers.CreateProduct).Methods("POST")
-	p.HandleFunc("/{id:[0-9]+}", controllers.GetProduct).Methods("GET")
-	p.HandleFunc("/{id:[0-9]+}", controllers.UpdateProduct).Methods("PUT")
-	p.HandleFunc("/{id:[0-9]+}", controllers.DeleteProduct).Methods("DELETE")
+	r.HandleFunc("/", controllers.GetProducts).Methods("GET")
+	r.HandleFunc("/", controllers.CreateProduct).Methods("POST")
+	r.HandleFunc("/{id:[0-9]+}", controllers.GetProduct).Methods("GET")
+	r.HandleFunc("/{id:[0-9]+}", controllers.UpdateProduct).Methods("PUT")
+	r.HandleFunc("/{id:[0-9]+}", controllers.DeleteProduct).Methods("DELETE")
 }
