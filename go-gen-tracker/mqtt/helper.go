@@ -14,21 +14,21 @@ func createClientOptions(config ClientConfig) *mqtt.ClientOptions {
 	opts.SetUsername(config.Username)
 	opts.SetPassword(config.Password)
 
-	opts.SetDefaultPublishHandler(messagePubHandler)
+	opts.SetDefaultPublishHandler(defaultPublishHandler)
 	opts.OnConnect = connectHandler
-	opts.OnConnectionLost = connectionLostHandler
+	opts.OnConnectionLost = disconnectHandler
 
 	return opts
 }
 
-func messagePubHandler(client mqtt.Client, msg mqtt.Message) {
-	log.Printf("Message %s received on topic %s\n", msg.Payload(), msg.Topic())
+func defaultPublishHandler(client mqtt.Client, msg mqtt.Message) {
+	log.Printf("[MQTT] Topic: %s => %s\n", msg.Topic(), msg.Payload())
 }
 
 func connectHandler(client mqtt.Client) {
-	log.Println("Connected")
+	log.Printf("[MQTT] Connected\n")
 }
 
-func connectionLostHandler(client mqtt.Client, err error) {
-	log.Printf("Connection Lost: %s\n", err.Error())
+func disconnectHandler(client mqtt.Client, err error) {
+	log.Printf("[MQTT] Disconnected, %s\n", err.Error())
 }

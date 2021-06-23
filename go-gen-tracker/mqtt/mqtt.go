@@ -16,11 +16,16 @@ type ClientConfig struct {
 
 type Mqtt struct {
 	client mqtt.Client
-	Config ClientConfig
 }
 
 func (mq *Mqtt) Connect() error {
-	opts := createClientOptions(mq.Config)
+	opts := createClientOptions(ClientConfig{
+		Host:     "test.mosquitto.org",
+		Port:     1883,
+		ClientId: "go_mqtt_client",
+		Username: "",
+		Password: "",
+	})
 	mq.client = mqtt.NewClient(opts)
 
 	token := mq.client.Connect()
@@ -41,9 +46,10 @@ func (mq *Mqtt) Subscribe(subscribers Subscribers) error {
 		token := mq.client.Subscribe(topic, 1, handler)
 
 		if token.Wait() && token.Error() != nil {
-			log.Printf("Subscribed to topic %s\n", topic)
 			return token.Error()
 		}
+
+		log.Printf("[MQTT] Subscribed to: %s\n", topic)
 	}
 	return nil
 }

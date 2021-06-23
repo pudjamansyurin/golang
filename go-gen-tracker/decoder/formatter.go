@@ -1,18 +1,11 @@
-package packet
+package decoder
 
 import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"reflect"
 	"time"
 )
-
-type Format struct {
-	DataType reflect.Kind
-	Scale    float32
-	Func     func(b []byte) interface{}
-}
 
 var endian = binary.BigEndian
 
@@ -50,7 +43,7 @@ func toInt32(b []byte) int32 {
 	return data
 }
 
-func toUnixTime(b []byte) interface{} {
+func ToUnixTime(b []byte) interface{} {
 	var data string
 	for _, v := range b {
 		data += fmt.Sprintf("%d", uint8(v))

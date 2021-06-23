@@ -9,15 +9,7 @@ import (
 )
 
 func main() {
-	mq := &mqtt.Mqtt{
-		Config: mqtt.ClientConfig{
-			Host:     "test.mosquitto.org",
-			Port:     1883,
-			ClientId: "go_mqtt_client",
-			Username: "",
-			Password: "",
-		},
-	}
+	mq := &mqtt.Mqtt{}
 	if err := mq.Connect(); err != nil {
 		log.Fatalf("[MQTT] Failed to connect, %s\n", err.Error())
 	}
