@@ -8,18 +8,17 @@ import (
 	"github.com/pudjamansyurin/go-gen-tracker/packet"
 )
 
-type Report struct {
-	Header packet.HeaderPacket
-	Buf    *bufio.Reader
+type Header struct {
+	Buf *bufio.Reader
 }
 
-func (r *Report) Decode() (interface{}, error) {
-	in, _ := r.Buf.Peek(1)
+func (h *Header) Decode() (packet.HeaderPacket, error) {
+	var data packet.HeaderPacket
 
-	if FrameID(in[0]) == FRAME_FULL {
-		return r.decode(&packet.ReportFullPacket{})
+	if err := binary.Read(h.Buf, binary.LittleEndian, &data); err != nil {
+		return packet.HeaderPacket{}, errors.New("cant decode header")
 	}
-	return r.decode(&packet.ReportSimplePacket{})
+	return data, nil
 
 	// data := make(M)
 	// for _, v := range packet.Header {
@@ -45,19 +44,11 @@ func (r *Report) Decode() (interface{}, error) {
 	// return data, nil
 }
 
-// func (r *Report) Validate() error {
-// 	length := r.Buf.Size()
-
-// 	minLength := int(unsafe.Sizeof(packet.ReportPacket{}))
+// func (h *Header) Validate() error {
+// 	length := h.Buf.Size()
+// 	minLength := int(unsafe.Sizeof(packet.HeaderPacket{}))
 // 	if length < minLength {
-// 		return fmt.Errorf("less report length, %d < %d", length, minLength)
+// 		return fmt.Errorf("less header length is, %d < %d", length, minLength)
 // 	}
 // 	return nil
 // }
-
-func (r *Report) decode(reportPacket interface{}) (interface{}, error) {
-	if err := binary.Read(r.Buf, binary.LittleEndian, reportPacket); err != nil {
-		return nil, errors.New("cant decode report")
-	}
-	return reportPacket, nil
-}

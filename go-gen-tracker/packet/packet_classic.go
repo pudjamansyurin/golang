@@ -3,9 +3,9 @@ package packet
 import "reflect"
 
 type Format struct {
-	DataType reflect.Kind
-	Scale    float32
-	Func     func(b []byte) interface{}
+	DataType      reflect.Kind
+	InterfaceName string
+	Scale         float32
 }
 
 type Packet struct {

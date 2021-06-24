@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-var endian = binary.BigEndian
+var endian = binary.LittleEndian
 
 func toAscii(b []byte) string {
 	return string(b)
@@ -43,7 +43,7 @@ func toInt32(b []byte) int32 {
 	return data
 }
 
-func ToUnixTime(b []byte) interface{} {
+func toUnixTime(b []byte) interface{} {
 	var data string
 	for _, v := range b {
 		data += fmt.Sprintf("%d", uint8(v))
@@ -53,5 +53,5 @@ func ToUnixTime(b []byte) interface{} {
 	layout := "060102150405"
 	datetime, _ := time.Parse(layout, data)
 
-	return datetime
+	return datetime.Unix()
 }
