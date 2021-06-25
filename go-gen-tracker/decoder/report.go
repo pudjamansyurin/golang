@@ -1,7 +1,7 @@
 package decoder
 
 import (
-	"bufio"
+	"bytes"
 	"encoding/binary"
 	"errors"
 
@@ -9,17 +9,21 @@ import (
 )
 
 type Report struct {
-	Header packet.HeaderPacket
-	Buf    *bufio.Reader
+	Reader *bytes.Reader
 }
 
 func (r *Report) Decode() (interface{}, error) {
-	in, _ := r.Buf.Peek(1)
+	simpleFrame := r.Reader.Len() == binary.Size(packet.ReportSimplePacket{})
 
-	if FrameID(in[0]) == FRAME_FULL {
-		return r.decode(&packet.ReportFullPacket{})
+	var decoded interface{}
+	if simpleFrame {
+		decoded, _ = r.decode(&packet.ReportSimplePacket{})
+	} else {
+		decoded, _ = r.decode(&packet.ReportFullPacket{})
 	}
-	return r.decode(&packet.ReportSimplePacket{})
+	packet.GetMeta(decoded)
+
+	return nil, nil
 
 	// data := make(M)
 	// for _, v := range packet.Header {
@@ -46,7 +50,7 @@ func (r *Report) Decode() (interface{}, error) {
 }
 
 // func (r *Report) Validate() error {
-// 	length := r.Buf.Size()
+// 	length := r.Reader.Size()
 
 // 	minLength := int(unsafe.Sizeof(packet.ReportPacket{}))
 // 	if length < minLength {
@@ -55,9 +59,9 @@ func (r *Report) Decode() (interface{}, error) {
 // 	return nil
 // }
 
-func (r *Report) decode(reportPacket interface{}) (interface{}, error) {
-	if err := binary.Read(r.Buf, binary.LittleEndian, reportPacket); err != nil {
-		return nil, errors.New("cant decode report")
+func (r *Report) decode(packet interface{}) (interface{}, error) {
+	if err := binary.Read(r.Reader, binary.LittleEndian, packet); err != nil {
+		return nil, errors.New("cant decode packet")
 	}
-	return reportPacket, nil
+	return packet, nil
 }
