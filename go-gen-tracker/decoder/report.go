@@ -3,6 +3,7 @@ package decoder
 import (
 	"bytes"
 	"encoding/binary"
+	"reflect"
 
 	"github.com/pudjamansyurin/go-gen-tracker/packet"
 	"github.com/pudjamansyurin/go-gen-tracker/util"
@@ -15,14 +16,20 @@ type Report struct {
 func (r *Report) Decode() (interface{}, error) {
 	simpleFrame := r.Reader.Len() == binary.Size(packet.ReportSimplePacket{})
 
-	var decoded interface{}
+	// var decoded interface{}
 	if simpleFrame {
-		decoded, _ = r.decode(&packet.ReportSimplePacket{})
+		// decoded, _ = r.decode(&packet.ReportSimplePacket{})
 	} else {
-		decoded, _ = r.decode(&packet.ReportFullPacket{})
-	}
+		// decoded, _ = r.decode(&packet.ReportFullPacket{})
 
-	util.Debug(decoded)
+		rpt := packet.ReportFullPacket{}
+
+		if err := packet.TagWalk(reflect.ValueOf(&rpt)); err != nil {
+			return nil, err
+		}
+
+		util.Debug(rpt)
+	}
 
 	return nil, nil
 
@@ -59,13 +66,3 @@ func (r *Report) Decode() (interface{}, error) {
 // 	}
 // 	return nil
 // }
-
-func (r *Report) decode(dst interface{}) (interface{}, error) {
-	packet.GetTag(dst)
-
-	// if err := binary.Read(r.Reader, binary.LittleEndian, packet); err != nil {
-	// 	return nil, errors.New("cant decode packet")
-	// }
-	// return packet, nil
-	return nil, nil
-}

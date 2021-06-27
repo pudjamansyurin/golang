@@ -8,7 +8,6 @@ import (
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/pudjamansyurin/go-gen-tracker/decoder"
-	"github.com/pudjamansyurin/go-gen-tracker/util"
 )
 
 func Report(client mqtt.Client, msg mqtt.Message) {
@@ -18,10 +17,10 @@ func Report(client mqtt.Client, msg mqtt.Message) {
 	reader := bytes.NewReader(msg.Payload())
 	report := &decoder.Report{Reader: reader}
 
-	reportDecoded, err := report.Decode()
+	_, err := report.Decode()
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal(err)
 	}
 
-	util.Debug(reportDecoded)
+	// util.Debug(reportDecoded)
 }

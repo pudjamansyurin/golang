@@ -121,6 +121,22 @@ type BmsPacket struct {
 		Current     float32 `type:"uint16" unit:"Ampere" factor:"0.1" chartable:""`
 		SOC         uint8   `type:"uint8" unit:"%" chartable:""`
 		Temperature uint16  `type:"uint16" unit:"Celcius" chartable:""`
+		// One struct {
+		// 	ID          uint32  `type:"uint32"`
+		// 	Fault       uint16  `type:"uint16" chartable:""`
+		// 	Voltage     float32 `type:"uint16" unit:"Volt" factor:"0.01" chartable:""`
+		// 	Current     float32 `type:"uint16" unit:"Ampere" factor:"0.1" chartable:""`
+		// 	SOC         uint8   `type:"uint8" unit:"%" chartable:""`
+		// 	Temperature uint16  `type:"uint16" unit:"Celcius" chartable:""`
+		// }
+		// Two struct {
+		// 	ID          uint32  `type:"uint32"`
+		// 	Fault       uint16  `type:"uint16" chartable:""`
+		// 	Voltage     float32 `type:"uint16" unit:"Volt" factor:"0.01" chartable:""`
+		// 	Current     float32 `type:"uint16" unit:"Ampere" factor:"0.1" chartable:""`
+		// 	SOC         uint8   `type:"uint8" unit:"%" chartable:""`
+		// 	Temperature uint16  `type:"uint16" unit:"Celcius" chartable:""`
+		// }
 	}
 }
 
@@ -155,6 +171,18 @@ type McuPacket struct {
 		DriveMode [DRIVE_MODE_CNT]struct {
 			Discur uint16  `type:"uint16" unit:"A" chartable:""`
 			Torque float32 `type:"uint16" unit:"Nm" factor:"0.1" chartable:""`
+			// Economy struct {
+			// 	Discur uint16  `type:"uint16" unit:"A" chartable:""`
+			// 	Torque float32 `type:"uint16" unit:"Nm" factor:"0.1" chartable:""`
+			// }
+			// Standard struct {
+			// 	Discur uint16  `type:"uint16" unit:"A" chartable:""`
+			// 	Torque float32 `type:"uint16" unit:"Nm" factor:"0.1" chartable:""`
+			// }
+			// Sport struct {
+			// 	Discur uint16  `type:"uint16" unit:"A" chartable:""`
+			// 	Torque float32 `type:"uint16" unit:"Nm" factor:"0.1" chartable:""`
+			// }
 		}
 	}
 }

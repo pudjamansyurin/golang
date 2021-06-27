@@ -1,10 +1,9 @@
 package packet
 
 import (
+	"errors"
 	"reflect"
 	"strconv"
-
-	"github.com/pudjamansyurin/go-gen-tracker/util"
 )
 
 // type M map[string]interface{}
@@ -16,65 +15,64 @@ type Tag struct {
 	Chartable bool
 }
 
-func GetTag(packet interface{}) {
-	tagStructWalk(reflect.ValueOf(packet).Elem())
-}
+func TagWalk(v reflect.Value) error {
+	if v.Kind() != reflect.Ptr {
+		return errors.New("not a pointer value")
+	}
 
-func tagStructWalk(v reflect.Value) {
-	switch v.Type().Kind() {
+	v = reflect.Indirect(v)
+
+	switch v.Kind() {
 	case reflect.Struct:
-		util.Debug(v.Type().Kind())
 		for i := 0; i < v.NumField(); i++ {
-			value := v.Field(i)
-			t := v.Type().Field(i)
-
-			if _, ok := t.Tag.Lookup("type"); !ok {
-				// if t.Type.Kind() == reflect.Struct {
-				tagStructWalk(value)
-				continue
+			if err := TagWalk(v.Field(i).Addr()); err != nil {
+				return err
 			}
 		}
-
 	case reflect.Array:
-		// util.Debug(v)
 		for i := 0; i < v.Len(); i++ {
-			item := v.Index(i)
-			util.Debug(item)
-
-			if item.Kind() == reflect.Struct {
-				v := reflect.Indirect(item)
-				tagStructWalk(v)
-				continue
-				// for j := 0; j < v.NumField(); j++ {
-				// 	fmt.Println(v.Type().Field(j).Name, v.Field(j).Interface())
-				// }
+			if err := TagWalk(v.Index(i).Addr()); err != nil {
+				return err
 			}
 		}
+	case reflect.Uint8:
+		v.SetUint(10)
+	case reflect.Int8:
+		v.SetInt(-50)
+	case reflect.String:
+		v.SetString("Foo")
+	case reflect.Bool:
+		v.SetBool(true)
+
+	default:
+		// return errors.New("Unsupported kind: " + v.Kind().String())
 	}
 
-	for i := 0; i < v.NumField(); i++ {
-		value := v.Field(i)
-		t := v.Type().Field(i)
+	// for i := 0; i < v.NumField(); i++ {
+	// 	value := v.Field(i)
+	// 	t := v.Type().Field(i)
 
-		// if _, ok := tipe.Tag.Lookup("type"); !ok {
-		if t.Type.Kind() == reflect.Struct {
-			tagStructWalk(value)
-			continue
-		}
+	// 	// if _, ok := tipe.Tag.Lookup("type"); !ok {
+	// 	if t.Type.Kind() == reflect.Struct {
+	// 		tagStructWalk(value.Addr())
+	// 		continue
+	// 	}
 
-		// tag := getTags(tipe)
-		// key := tag.Group + "." + strings.ToLower(tipe.Name)
-		// val := value.Interface()
+	// 	tag := getTags(t)
+	// 	// key := tag.Group + "." + strings.ToLower(t.Name)
+	// 	val := value.Interface()
 
-		// fmt.Println(key)
-		// switch tag.Tipe {
-		// case "string":
-		// 	val = val.([]byte)
-		// case "datetime":
-		// 	val = formatter.ToUnixTime(val.([]byte))
-		// }
-		// buf[key] = val
-	}
+	// 	fmt.Println(t.Name, val, tag)
+	// 	// switch tag.Tipe {
+	// 	// case "string":
+	// 	// 	val = val.([]byte)
+	// 	// case "datetime":
+	// 	// 	val = formatter.ToUnixTime(val.([]byte))
+	// 	// }
+	// 	// buf[key] = val
+	// }
+
+	return nil
 }
 
 func getTags(field reflect.StructField) Tag {
